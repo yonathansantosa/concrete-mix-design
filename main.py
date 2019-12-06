@@ -68,10 +68,10 @@ for b in range(b_max):
 
 
     # Hyperparameter
-    learning_rate = 0.1
+    learning_rate = float(args.lr)
     model = feedforward()
     model.to(device)
-    max_epoch = 10
+    max_epoch = int(args.maxepoch)
     momentum=0.1
 
     # if args.wandb: wandb.watch(model)
