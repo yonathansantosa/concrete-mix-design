@@ -62,7 +62,7 @@ for b in range(b_max):
 
     # Creating PT data samplers and loaders:
     train_indices, val_indices = indices[:split], indices[split:]
-    train_indices = np.random.randint(indices[-1], size=(int(args.bsize)))
+    train_indices = np.random.choice(train_indices, size=(int(args.bsize)))
     np.random.shuffle(val_indices)
     train_sampler = SubsetRandomSampler(train_indices)
     valid_sampler = SubsetRandomSampler(val_indices)
