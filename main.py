@@ -28,6 +28,7 @@ parser.add_argument('--agr_lr', default=0.1, help='aggregate learing rate (defau
 parser.add_argument('--batch', default=32, help='minibatch size (default=32)')
 parser.add_argument('--agr_batch', default=32, help='minibatch size (default=32)')
 parser.add_argument('--b', default=2, help='number of bag (default=2)')
+parser.add_argument('--seed', default=2, help='number of bag (default=2)')
 parser.add_argument('--bsize', default=100, help='number of bag size sample (default=100)')
 parser.add_argument('--local', default=False, action='store_true')
 parser.add_argument('--wandb', default=False, action='store_true')
@@ -38,7 +39,7 @@ saved_model_path = f'trained'
 if not args.local: saved_model_path = cloud_dir + saved_model_path
 if not os.path.exists(saved_model_path): os.makedirs(saved_model_path)
 b_max = int(args.b)
-random_seed = 32
+random_seed = int(args.seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 np.random.seed(random_seed)
 torch.manual_seed(random_seed)
