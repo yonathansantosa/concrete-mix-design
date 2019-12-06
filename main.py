@@ -22,8 +22,11 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument('--maxepoch', default=1000, help='maximum iteration (default=1000)')
+parser.add_argument('--agr_maxepoch', default=1000, help='maximum aggregate iteration (default=1000)')
 parser.add_argument('--lr', default=0.1, help='learing rate (default=0.1)')
+parser.add_argument('--agr_lr', default=0.1, help='aggregate learing rate (default=0.1)')
 parser.add_argument('--batch', default=32, help='minibatch size (default=32)')
+parser.add_argument('--agr_batch', default=32, help='minibatch size (default=32)')
 parser.add_argument('--b', default=2, help='number of bag (default=2)')
 parser.add_argument('--bsize', default=100, help='number of bag size sample (default=100)')
 parser.add_argument('--local', default=False, action='store_true')
@@ -126,7 +129,10 @@ optimizer = optim.SGD(aggregate.parameters(), lr=learning_rate, momentum=momentu
 if args.wandb: wandb.init(project="concrete-mix-design")
 if args.wandb: wandb.watch(aggregate)
 
-for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
+agr_learning_rate = float(args.agr_lr)
+agr_max_epoch = int(args.agr_maxepoch)
+
+for epoch in trange(0, agr_max_epoch, total=agr_max_epoch, initial=0):
     aggregate.train()
     for it, (X, y) in enumerate(train_loader):
         aggregate.zero_grad()
