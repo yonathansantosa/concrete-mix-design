@@ -40,10 +40,14 @@ class MyEnsemble(nn.Module):
         super(MyEnsemble, self).__init__()
         self.models = models
         self.classifier = nn.Linear(b, 1)
+        self.b = b
         
-    def forward(self, x1, x2):
-        x1 = self.modelA(x1)
-        x2 = self.modelB(x2)
-        x = torch.cat((x1, x2), dim=1)
-        x = self.classifier(F.relu(x))
-        return x
+    def forward(self, x):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+        x_prime = torch.zeros(self.b).to(device)
+        for i in range(self.b):
+            x_prime[i] = self.models[i].forward(x)
+
+        out = self.classifier(x_prime)
+        return out

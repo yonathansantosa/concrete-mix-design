@@ -14,7 +14,7 @@ import os
 import numpy as np
 
 from data.dataset import Concrete
-from model import feedforward
+from model import feedforward, MyEnsemble
 
 # *Argument parser
 parser = argparse.ArgumentParser(
@@ -30,7 +30,7 @@ parser.add_argument('--local', default=False, action='store_true')
 
 args = parser.parse_args()
 cloud_dir = '/content/gdrive/My Drive/'
-saved_model_path = f'concrete-mix-design/trained/'
+saved_model_path = f'trained'
 if not args.local: saved_model_path = cloud_dir + saved_model_path
 
 b_max = int(args.b)
@@ -100,8 +100,49 @@ for b in range(b_max):
             output = model.forward(inputs)
             target = Variable(y.unsqueeze(1)).to(device)
             val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()
-    
+        # wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
+
     torch.save(model.state_dict(), f'{saved_model_path}/model-{b}.pth')
 
-        # wandb.log({"eval Loss": val_loss/len(val_indices)}, step=epoch)
-    # wandb.join()
+models = []
+for b in range(b_max):
+    m = feedforward()
+    m.load_state_dict(torch.load(f'{saved_model_path}/model-{b}.pth'))
+    # m.parameters(require_grads=False)
+    m.eval()
+    models += [m]
+
+train_indices = indices[:split]
+np.random.shuffle(train_indices)
+train_sampler = SubsetRandomSampler(train_indices)
+train_loader = DataLoader(data, batch_size=batch_size, sampler=train_sampler)
+
+aggregate = MyEnsemble(models, b_max)
+optimizer = optim.SGD(aggregate.parameters(), lr=learning_rate, momentum=momentum, nesterov=True)
+
+wandb.init(project="concrete-mix-design")
+wandb.watch(aggregate)
+
+for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
+    aggregate.train()
+    for it, (X, y) in enumerate(train_loader):
+        aggregate.zero_grad()
+        inputs = Variable(X, requires_grad=True).to(device)
+        output = aggregate.forward(inputs)
+        target = Variable(y.unsqueeze(1)).to(device)
+        loss = criterion(output, target)
+        loss.backward()
+
+        if it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
+
+    
+    aggregate.eval()
+    val_loss = 0.
+    for it, (X, y) in enumerate(train_loader):
+        aggregate.zero_grad()
+        inputs = Variable(X, requires_grad=True).to(device)
+        output = aggregate.forward(inputs)
+        target = Variable(y.unsqueeze(1)).to(device)
+        val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()
+    wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
+    
