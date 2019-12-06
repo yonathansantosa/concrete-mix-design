@@ -27,6 +27,7 @@ parser.add_argument('--batch', default=32, help='minibatch size (default=32)')
 parser.add_argument('--b', default=2, help='number of bag (default=2)')
 parser.add_argument('--bsize', default=100, help='number of bag size sample (default=100)')
 parser.add_argument('--local', default=False, action='store_true')
+parser.add_argument('--wandb', default=False, action='store_true')
 
 args = parser.parse_args()
 cloud_dir = '/content/gdrive/My Drive/'
@@ -54,7 +55,7 @@ split = int(np.floor(validation_split * data_size))
 np.random.shuffle(indices)
 
 for b in range(b_max):
-    # wandb.init(project="concrete-mix-design")
+    # if args.wandb: wandb.init(project="concrete-mix-design")
 
     # Creating PT data samplers and loaders:
     train_indices, val_indices = indices[:split], indices[split:]
@@ -73,7 +74,7 @@ for b in range(b_max):
     max_epoch = 10
     momentum=0.1
 
-    # wandb.watch(model)
+    # if args.wandb: wandb.watch(model)
     optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, nesterov=True)
     criterion = nn.MSELoss()
 
@@ -87,7 +88,7 @@ for b in range(b_max):
             loss = criterion(output, target)
             loss.backward()
             
-            # if it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
+            # if args.wandb: if it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
 
             optimizer.step()
             optimizer.zero_grad()
@@ -100,7 +101,7 @@ for b in range(b_max):
             output = model.forward(inputs)
             target = Variable(y.unsqueeze(1)).to(device)
             val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()
-        # wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
+        # if args.wandb: wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
 
     torch.save(model.state_dict(), f'{saved_model_path}/model-{b}.pth')
 
@@ -109,6 +110,7 @@ for b in range(b_max):
     m = feedforward()
     m.load_state_dict(torch.load(f'{saved_model_path}/model-{b}.pth'))
     # m.parameters(require_grads=False)
+    m.to(device)
     m.eval()
     models += [m]
 
@@ -121,8 +123,8 @@ aggregate = MyEnsemble(models, b_max)
 aggregate.to(device)
 optimizer = optim.SGD(aggregate.parameters(), lr=learning_rate, momentum=momentum, nesterov=True)
 
-wandb.init(project="concrete-mix-design")
-wandb.watch(aggregate)
+if args.wandb: wandb.init(project="concrete-mix-design")
+if args.wandb: wandb.watch(aggregate)
 
 for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     aggregate.train()
@@ -134,7 +136,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         loss = criterion(output, target)
         loss.backward()
 
-        if it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
+        if args.wandb and it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
 
     
     aggregate.eval()
@@ -145,5 +147,5 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         output = aggregate.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)
         val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()
-    wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
+    if args.wandb: wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
     

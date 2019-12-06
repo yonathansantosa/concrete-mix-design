@@ -45,9 +45,9 @@ class MyEnsemble(nn.Module):
     def forward(self, x):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        x_prime = torch.zeros(self.b).to(device)
+        x_prime = torch.zeros(self.b, x.shape[0]).to(device)
         for i in range(self.b):
-            x_prime[i] = self.models[i].forward(x)
+            x_prime[i] = self.models[i].forward(x).squeeze()
 
-        out = self.classifier(x_prime)
+        out = self.classifier(x_prime.view(x.shape[0], self.b))
         return out
