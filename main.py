@@ -32,7 +32,7 @@ args = parser.parse_args()
 cloud_dir = '/content/gdrive/My Drive/'
 saved_model_path = f'trained'
 if not args.local: saved_model_path = cloud_dir + saved_model_path
-
+if not os.path.exists(saved_model_path): os.makedirs(saved_model_path)
 b_max = int(args.b)
 random_seed = 32
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -118,6 +118,7 @@ train_sampler = SubsetRandomSampler(train_indices)
 train_loader = DataLoader(data, batch_size=batch_size, sampler=train_sampler)
 
 aggregate = MyEnsemble(models, b_max)
+aggregate.to(device)
 optimizer = optim.SGD(aggregate.parameters(), lr=learning_rate, momentum=momentum, nesterov=True)
 
 wandb.init(project="concrete-mix-design")
