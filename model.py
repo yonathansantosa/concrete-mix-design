@@ -36,6 +36,21 @@ class feedforward(nn.Module):
 
         return output
 
+class cnn(nn.Module):
+    def __init__(self):
+        super(cnn, self).__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(1, 8, (2, 4)),
+            nn.Sigmoid()
+        )
+
+        self.ff = nn.Linear(8,1)
+        
+    def forward(self, x):
+        out_conv = self.conv(x).view(x.shape[0],8)
+        out = self.ff(out_conv)
+        return out
+
 class MyEnsemble(nn.Module):
     def __init__(self, models, b=1):
         super(MyEnsemble, self).__init__()

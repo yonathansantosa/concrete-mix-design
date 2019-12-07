@@ -15,4 +15,4 @@ class Concrete:
         return len(self.X)
 
     def __getitem__(self, index):
-        return (self.X[index], self.y[index])
+        return (self.X[index].view(1,2,4), self.y[index])

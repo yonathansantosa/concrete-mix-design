@@ -14,7 +14,7 @@ import os
 import numpy as np
 
 from data.dataset import Concrete
-from model import feedforward, MyEnsemble
+from model import feedforward, MyEnsemble, cnn
 
 # *Argument parser
 parser = argparse.ArgumentParser(
@@ -73,7 +73,7 @@ for b in range(b_max):
 
     # Hyperparameter
     learning_rate = float(args.lr)
-    model = feedforward()
+    model = cnn()
     model.to(device)
     max_epoch = int(args.maxepoch)
     momentum=0.1
@@ -111,7 +111,7 @@ for b in range(b_max):
 
 models = []
 for b in range(b_max):
-    m = feedforward()
+    m = cnn()
     m.load_state_dict(torch.load(f'{saved_model_path}/model-{b}.pth'))
     # m.parameters(require_grads=False)
     m.to(device)
