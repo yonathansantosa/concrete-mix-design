@@ -40,7 +40,11 @@ class MyEnsemble(nn.Module):
     def __init__(self, models, b=1):
         super(MyEnsemble, self).__init__()
         self.models = models
-        self.classifier = nn.Linear(b, 1)
+        self.classifier = nn.Sequential(
+                            nn.Linear(b, b),
+                            nn.Tanh(),
+                            nn.Linear(b,1)
+        )
         self.b = b
         
     def forward(self, x):
@@ -48,7 +52,7 @@ class MyEnsemble(nn.Module):
 
         x_prime = torch.zeros(self.b, x.shape[0]).to(device)
         for i in range(self.b):
-            x_prime[i] = self.models[i].forward(x).squeeze()
+            x_prime[i] = self.models[i].forward(x).squeeze()/1000
 
         out = self.classifier(x_prime.view(x.shape[0], self.b))
         return out
