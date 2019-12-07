@@ -6,15 +6,6 @@ import numpy as np
 class feedforward(nn.Module):
     def __init__(self):
         super(feedforward, self).__init__()
-        self.norm1 = nn.Linear(1, 1)
-        self.norm2 = nn.Linear(1, 1)
-        self.norm3 = nn.Linear(1, 1)
-        self.norm4 = nn.Linear(1, 1)
-        self.norm5 = nn.Linear(1, 1)
-        self.norm6 = nn.Linear(1, 1)
-        self.norm7 = nn.Linear(1, 1)
-        self.norm8 = nn.Linear(1, 1)
-        self.norm9 = nn.Linear(1, 1)
 
         self.fc1 = nn.Linear(8, 8)
         self.fc2 = nn.Linear(8, 8)
@@ -30,7 +21,6 @@ class feedforward(nn.Module):
         self.fc12 = nn.Linear(3, 1)
     
     def forward(self, x):
-        out_norm1 = 
         out_fc1 = torch.tanh(self.fc1(x))
         out_fc2 = torch.tanh(self.fc2(out_fc1))
         out_fc3 = torch.tanh(self.fc3(out_fc2))
