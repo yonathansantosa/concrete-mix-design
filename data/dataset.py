@@ -7,7 +7,7 @@ class Concrete:
         dataset = np.genfromtxt(dataset_file, delimiter=';', skip_header=1)
         mu = 0
         std = 0.5
-        self.X = torch.from_numpy((dataset[:, :-1] - mu) / std).float().to(device)
+        self.X = torch.from_numpy(dataset[:, :-1] / dataset[:, :-1].max()).float().to(device)
         # self.X = torch.from_numpy(dataset[:, :-1]).float().to(device)
         self.y = torch.from_numpy(dataset[:, -1]).float().to(device)
 
