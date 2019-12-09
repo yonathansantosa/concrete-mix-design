@@ -117,9 +117,11 @@ for b in range(b_max):
     m.load_state_dict(torch.load(f'{saved_model_path}/model-{b}.pth'))
     # m.parameters(require_grads=False)
     m.to(device)
-    if not args.trainable_bag: 
-        m.eval()
+    if args.trainable_bag: 
+        m.train()
         models_param += list(m.parameters())
+    else:
+        m.eval()
     models += [m]
     
 
