@@ -56,10 +56,7 @@ class MyEnsemble(nn.Module):
         super(MyEnsemble, self).__init__()
         self.models = models
         self.classifier = nn.Sequential(
-                            nn.Linear(b, b),
-                            nn.Tanh(),
-                            nn.Linear(b,1),
-                            nn.ReLU()
+            nn.Linear(b,1)
         )
         self.b = b
         
