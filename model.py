@@ -58,7 +58,7 @@ class MyEnsemble(nn.Module):
         self.classifier = nn.Sequential(
                             nn.Linear(b, b),
                             nn.Tanh(),
-                            nn.Linear(b,1).
+                            nn.Linear(b,1),
                             nn.ReLU()
         )
         self.b = b
