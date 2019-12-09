@@ -1,5 +1,3 @@
-import wandb
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -10,6 +8,7 @@ from torch.autograd import Variable
 import argparse
 from tqdm import trange, tqdm
 import os
+import wandb
 
 import numpy as np
 
@@ -32,6 +31,8 @@ parser.add_argument('--seed', default=2, help='number of bag (default=2)')
 parser.add_argument('--bsize', default=100, help='number of bag size sample (default=100)')
 parser.add_argument('--local', default=False, action='store_true')
 parser.add_argument('--wandb', default=False, action='store_true')
+parser.add_argument('--trainable_bag', default=False, action='store_true')
+
 
 args = parser.parse_args()
 cloud_dir = '/content/gdrive/My Drive/'
@@ -110,13 +111,17 @@ for b in range(b_max):
     torch.save(model.state_dict(), f'{saved_model_path}/model-{b}.pth')
 
 models = []
+models_param = []
 for b in range(b_max):
     m = cnn()
     m.load_state_dict(torch.load(f'{saved_model_path}/model-{b}.pth'))
     # m.parameters(require_grads=False)
     m.to(device)
-    m.eval()
+    if not args.trainable_bag: 
+        m.eval()
+        models_param += list(m.parameters())
     models += [m]
+    
 
 train_indices = indices[:split]
 np.random.shuffle(train_indices)
@@ -125,7 +130,10 @@ train_loader = DataLoader(data, batch_size=batch_size, sampler=train_sampler)
 
 aggregate = MyEnsemble(models, b_max)
 aggregate.to(device)
-optimizer = optim.SGD(aggregate.parameters(), lr=learning_rate, momentum=momentum, nesterov=True)
+if args.trainable_bag:
+    optimizer = optim.SGD(list(aggregate.parameters()) + models_param, lr=learning_rate, momentum=momentum, nesterov=True)
+else:
+    optimizer = optim.SGD(list(aggregate.parameters()), lr=learning_rate, momentum=momentum, nesterov=True)
 
 if args.wandb: wandb.init(project="concrete-mix-design")
 if args.wandb: wandb.watch(aggregate)
@@ -144,6 +152,9 @@ for epoch in trange(0, agr_max_epoch, total=agr_max_epoch, initial=0):
         loss.backward()
 
         if args.wandb and it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
+
+        optimizer.step()
+        optimizer.zero_grad()
 
     
     aggregate.eval()
