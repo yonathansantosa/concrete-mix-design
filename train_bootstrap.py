@@ -57,7 +57,7 @@ indices = list(range(data_size))
 split = int(np.floor(validation_split * data_size))
 np.random.shuffle(indices)
 
-if args.wandb: wandb.init(project="concrete-mix-design", name=f'bootstrap-{b}')
+if args.wandb: wandb.init(project="concrete-mix-design", name=f'bootstrap', notes=f'{b}')
 
 # Creating PT data samplers and loaders:
 train_indices, val_indices = indices[:split], indices[split:]
