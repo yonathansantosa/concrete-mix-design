@@ -90,7 +90,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         loss = criterion(output, target)
         loss.backward()
         
-        if args.wandb: if it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
+        if args.wandb and it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
 
         optimizer.step()
         optimizer.zero_grad()
