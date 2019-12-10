@@ -40,8 +40,8 @@ if not os.path.exists(saved_model_path): os.makedirs(saved_model_path)
 b = int(args.b)
 random_seed = int(args.seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-np.random.seed(random_seed)
-torch.manual_seed(random_seed)
+np.random.seed(random_seed+b)
+torch.manual_seed(random_seed+b)
 
 
 # Creating dataset
