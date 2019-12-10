@@ -59,6 +59,8 @@ class MyEnsemble(nn.Module):
             nn.Linear(b,1)
         )
         self.b = b
+
+        self.divisor = nn.Parameter(torch.tensor(torch.rand(b)), requires_grad=True)
         
     def forward(self, x):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -67,5 +69,5 @@ class MyEnsemble(nn.Module):
         for i in range(self.b):
             x_prime[i] = self.models[i].forward(x).squeeze()
 
-        out = x_prime.view(x.shape[0], self.b).mean(dim=1, keepdim=True)
+        out = torch.sum(x_prime.view(x.shape[0], self.b) * self.divisor, dim=1, keepdim=True) 
         return out
