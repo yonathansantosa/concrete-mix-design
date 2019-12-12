@@ -61,7 +61,7 @@ if args.wandb: wandb.init(project="concrete-mix-design", name=f'bootstrap', note
 
 # Creating PT data samplers and loaders:
 train_indices, val_indices = indices[:split], indices[split:]
-train_indices = np.random.choice(train_indices, size=(int(args.bsize)))
+train_indices = np.random.choice(train_indices, size=int(np.floor(len(train_indices) * .7)))
 np.random.shuffle(val_indices)
 train_sampler = SubsetRandomSampler(train_indices)
 valid_sampler = SubsetRandomSampler(val_indices)
