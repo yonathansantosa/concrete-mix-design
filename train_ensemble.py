@@ -13,7 +13,7 @@ import wandb
 import numpy as np
 
 from data.dataset import Concrete
-from model import feedforward, MyEnsemble, cnn
+from model import feedforward, MyEnsemble, cnn, feedforward_50, RMSELoss
 
 # *Argument parser
 parser = argparse.ArgumentParser(
@@ -81,7 +81,7 @@ np.random.shuffle(indices)
 models = []
 models_param = []
 for b in range(b_max):
-    m = cnn()
+    m = feedforward_50()
     m.load_state_dict(torch.load(f'{saved_model_path}/model-{b}.pth'))
     # m.parameters(require_grads=False)
     m.to(device)
@@ -119,8 +119,12 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         output = aggregate.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)
         loss = criterion(output, target)
+        l1_norm = 0.
+        for p in aggregate.parameters():
+            l1_norm += torch.norm(p, p=1)
+        loss += l1_norm
         loss.backward()
-
+        nn.utils.clip_grad_norm_(model.parameters(), 1)
         if args.wandb and it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
 
         optimizer.step()

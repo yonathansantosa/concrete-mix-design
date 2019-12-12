@@ -13,7 +13,7 @@ import wandb
 import numpy as np
 
 from data.dataset import Concrete
-from model import feedforward, MyEnsemble, cnn
+from model import feedforward, MyEnsemble, cnn, feedforward_50, RMSELoss
 
 # *Argument parser
 parser = argparse.ArgumentParser(
@@ -71,14 +71,14 @@ validation_loader = DataLoader(data, batch_size=val_batch_size, sampler=valid_sa
 
 # Hyperparameter
 learning_rate = float(args.lr)
-model = cnn()
+model = feedforward_50()
 model.to(device)
 max_epoch = int(args.maxepoch)
 momentum=0.1
 
 if args.wandb: wandb.watch(model)
 optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, nesterov=True)
-criterion = nn.MSELoss()
+criterion = RMSELoss()
 
 for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     model.train()
@@ -88,8 +88,12 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         output = model.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)
         loss = criterion(output, target)
+        l1_norm = 0.
+        for p in model.parameters():
+            l1_norm += torch.norm(p, p=1)
+        loss += l1_norm
         loss.backward()
-        
+        nn.utils.clip_grad_norm_(model.parameters(), 1)
         if args.wandb and it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
 
         optimizer.step()

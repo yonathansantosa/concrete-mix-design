@@ -36,6 +36,119 @@ class feedforward(nn.Module):
 
         return output
 
+class feedforward_50(nn.Module):
+    def __init__(self):
+        super(feedforward_50, self).__init__()
+
+        self.fc = nn.Sequential(
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,8),
+            nn.ReLU(),
+            nn.Linear(8,1)
+        )
+    
+    def forward(self, x):
+        output = self.fc(x)
+
+        return output
+
 class cnn(nn.Module):
     def __init__(self):
         super(cnn, self).__init__()
@@ -60,7 +173,7 @@ class MyEnsemble(nn.Module):
         )
         self.b = b
 
-        self.divisor = nn.Parameter(torch.tensor(torch.rand(b)), requires_grad=True)
+        self.divisor = nn.Parameter(torch.rand(1, b), requires_grad=True)
         
     def forward(self, x):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -71,3 +184,13 @@ class MyEnsemble(nn.Module):
 
         out = torch.sum(x_prime.view(x.shape[0], self.b) * self.divisor, dim=1, keepdim=True) 
         return out
+
+class RMSELoss(nn.Module):
+    def __init__(self, eps=1e-6):
+        super().__init__()
+        self.mse = nn.MSELoss()
+        self.eps = eps
+        
+    def forward(self,yhat,y):
+        loss = (self.mse(yhat,y) + self.eps)**0.5
+        return loss
