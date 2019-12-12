@@ -89,9 +89,9 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         target = Variable(y.unsqueeze(1)).to(device)
         loss = criterion(output, target)
         l1_norm = 0.
-        for p in model.parameters():
-            l1_norm += torch.norm(p, p=1)
-        loss += l1_norm
+        # for p in model.parameters():
+        #     l1_norm += torch.norm(p, p=1)
+        # loss += l1_norm
         loss.backward()
         nn.utils.clip_grad_value_(model.parameters(), 10)
         if args.wandb and it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
