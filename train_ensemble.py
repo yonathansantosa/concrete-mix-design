@@ -144,7 +144,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         y = y*data.y_std + data.y_mean
         aggregate.zero_grad()
         inputs = Variable(X, requires_grad=True).to(device)
-        output = aggregate.forward(inputs)
+        output = aggregate.forward(inputs)*data.y_std + data.y_mean
         target = Variable(y.unsqueeze(1)).to(device)
         val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()
 
