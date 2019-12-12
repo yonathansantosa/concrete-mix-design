@@ -79,11 +79,7 @@ np.random.shuffle(indices)
 models = []
 models_param = []
 for b in range(b_max):
-<<<<<<< HEAD
     m = feedforward_50()
-=======
-    m = feedforward()
->>>>>>> fc27a639c45a4deffe83e60fa067ad2a890396d1
     m.load_state_dict(torch.load(f'{saved_model_path}/model-{b}.pth'))
     # m.parameters(require_grads=False)
     m.to(device)
