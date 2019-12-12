@@ -42,23 +42,23 @@ class feedforward_50(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(8,50),
-            nn.ReLU(),
+            nn.HardTanH(min_val=1, max_val=10)
             nn.Linear(50,50),
-            nn.ReLU(),
+            nn.HardTanH(min_val=1, max_val=10)
             nn.Linear(50,50),
-            nn.ReLU(),
+            nn.HardTanH(min_val=1, max_val=10)
             nn.Linear(50,50),
-            nn.ReLU(),
+            nn.HardTanH(min_val=1, max_val=10)
             nn.Linear(50,50),
-            nn.ReLU(),
+            nn.HardTanH(min_val=1, max_val=10)
             nn.Linear(50,50),
-            nn.ReLU(),
+            nn.HardTanH(min_val=1, max_val=10)
             nn.Linear(50,50),
-            nn.ReLU(),
+            nn.HardTanH(min_val=1, max_val=10)
             nn.Linear(50,50),
-            nn.ReLU(),
+            nn.HardTanH(min_val=1, max_val=10)
             nn.Linear(50,50),
-            nn.ReLU(),
+            nn.HardTanH(min_val=1, max_val=10)
             nn.Linear(50,1)
         )
     
@@ -99,7 +99,7 @@ class MyEnsemble(nn.Module):
         x_prime = torch.zeros(self.b, x.shape[0]).to(device)
         for i in range(self.b):
             x_prime[i] = self.models[i].forward(x).squeeze()
-            
+
         out = torch.sum(x_prime.view(x.shape[0], self.b) * self.divisor, dim=1, keepdim=True) 
         return out
 
