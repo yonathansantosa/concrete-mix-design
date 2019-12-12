@@ -122,7 +122,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
             l1_norm += torch.norm(p, p=1)
         loss += l1_norm
         loss.backward()
-        nn.utils.clip_grad_norm_(model.parameters(), 1)
+        nn.utils.clip_grad_value_(aggregate.parameters(), 1)
         if args.wandb and it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
 
         optimizer.step()
