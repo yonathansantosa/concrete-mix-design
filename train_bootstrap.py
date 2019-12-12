@@ -77,7 +77,7 @@ max_epoch = int(args.maxepoch)
 momentum=0.1
 
 if args.wandb: wandb.watch(model)
-optimizer = optim.Adadelta(model.parameters())
+optimizer = optim.Adadelta(model.parameters(), lr=learning_rate)
 criterion = RMSELoss()
 
 for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
@@ -93,7 +93,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
             l1_norm += 1.0e-5*torch.norm(p, p=1)
         loss += l1_norm
         loss.backward()
-        nn.utils.clip_grad_value_(model.parameters(), 10)
+        # nn.utils.clip_grad_value_(model.parameters(), 10)
         if args.wandb and it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
 
         optimizer.step()
