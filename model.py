@@ -59,8 +59,7 @@ class feedforward_50(nn.Module):
             nn.ReLU(),
             nn.Linear(50,50),
             nn.ReLU(),
-            nn.Linear(50,1),
-            nn.ReLU(),
+            nn.Linear(50,1)
         )
     
     def forward(self, x):
