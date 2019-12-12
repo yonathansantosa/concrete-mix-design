@@ -66,8 +66,6 @@ train_loader = DataLoader(data, batch_size=batch_size, sampler=train_sampler)
 validation_loader = DataLoader(data, batch_size=val_batch_size, sampler=valid_sampler)
 
 # Hyperparameter
-model = cnn()
-model.to(device)
 learning_rate = float(args.lr)
 max_epoch = int(args.maxepoch)
 momentum=0.1
@@ -81,7 +79,11 @@ np.random.shuffle(indices)
 models = []
 models_param = []
 for b in range(b_max):
+<<<<<<< HEAD
     m = feedforward_50()
+=======
+    m = feedforward()
+>>>>>>> fc27a639c45a4deffe83e60fa067ad2a890396d1
     m.load_state_dict(torch.load(f'{saved_model_path}/model-{b}.pth'))
     # m.parameters(require_grads=False)
     m.to(device)

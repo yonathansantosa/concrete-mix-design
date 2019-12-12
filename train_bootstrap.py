@@ -71,7 +71,11 @@ validation_loader = DataLoader(data, batch_size=val_batch_size, sampler=valid_sa
 
 # Hyperparameter
 learning_rate = float(args.lr)
+<<<<<<< HEAD
 model = feedforward_50()
+=======
+model = feedforward()
+>>>>>>> fc27a639c45a4deffe83e60fa067ad2a890396d1
 model.to(device)
 max_epoch = int(args.maxepoch)
 momentum=0.1
