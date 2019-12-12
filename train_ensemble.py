@@ -29,6 +29,7 @@ parser.add_argument('--bsize', default=100, help='number of bag size sample (def
 parser.add_argument('--local', default=False, action='store_true')
 parser.add_argument('--wandb', default=False, action='store_true')
 parser.add_argument('--trainable_bag', default=False, action='store_true')
+parser.add_argument('--model', default='feedforward')
 
 
 args = parser.parse_args()
@@ -79,7 +80,12 @@ np.random.shuffle(indices)
 models = []
 models_param = []
 for b in range(b_max):
-    m = feedforward_50()
+    if args.model == 'feedforward':
+        model = feedforward()
+    elif args.model == 'feedforward_50':
+        model = feedforward_50()
+    else:
+        model = cnn()
     m.load_state_dict(torch.load(f'{saved_model_path}/model-{b}.pth'))
     # m.parameters(require_grads=False)
     m.to(device)

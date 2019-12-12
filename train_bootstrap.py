@@ -30,6 +30,7 @@ parser.add_argument('--bsize', default=100, help='number of bag size sample (def
 parser.add_argument('--local', default=False, action='store_true')
 parser.add_argument('--wandb', default=False, action='store_true')
 parser.add_argument('--trainable_bag', default=False, action='store_true')
+parser.add_argument('--model', default='feedforward')
 
 
 args = parser.parse_args()
@@ -71,7 +72,12 @@ validation_loader = DataLoader(data, batch_size=val_batch_size, sampler=valid_sa
 torch.autograd.set_detect_anomaly(True)
 # Hyperparameter
 learning_rate = float(args.lr)
-model = feedforward_50()
+if args.model == 'feedforward':
+    model = feedforward()
+elif args.model == 'feedforward_50':
+    model = feedforward_50()
+else:
+    model = cnn()
 model.to(device)
 max_epoch = int(args.maxepoch)
 momentum=0.1
