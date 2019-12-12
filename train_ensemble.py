@@ -99,9 +99,9 @@ train_loader = DataLoader(data, batch_size=batch_size, sampler=train_sampler)
 aggregate = MyEnsemble(models, b_max)
 aggregate.to(device)
 if args.trainable_bag:
-    optimizer = optim.SGD(list(aggregate.parameters()) + models_param, lr=learning_rate, momentum=momentum, nesterov=True)
+    optimizer = optim.Adadelta(list(aggregate.parameters()) + models_param)
 else:
-    optimizer = optim.SGD(list(aggregate.parameters()), lr=learning_rate, momentum=momentum, nesterov=True)
+    optimizer = optim.Adadelta(list(aggregate.parameters()))
 
 if args.wandb: wandb.init(project="concrete-mix-design", name='aggregate')
 if args.wandb: wandb.watch(aggregate)
@@ -119,7 +119,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         loss = criterion(output, target)
         l1_norm = 0.
         for p in aggregate.parameters():
-            l1_norm += torch.norm(p, p=2)
+            l1_norm += 1.0e-5*torch.norm(p, p=1)
         loss += l1_norm
         loss.backward()
         nn.utils.clip_grad_value_(aggregate.parameters(), 1)

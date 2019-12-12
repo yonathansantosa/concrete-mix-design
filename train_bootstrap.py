@@ -77,7 +77,7 @@ max_epoch = int(args.maxepoch)
 momentum=0.1
 
 if args.wandb: wandb.watch(model)
-optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, nesterov=True)
+optimizer = optim.Adadelta(model.parameters())
 criterion = RMSELoss()
 
 for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
@@ -90,7 +90,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         loss = criterion(output, target)
         l1_norm = 0.
         for p in model.parameters():
-            l1_norm += torch.norm(p, p=2)
+            l1_norm += 1.0e-5*torch.norm(p, p=1)
         loss += l1_norm
         loss.backward()
         nn.utils.clip_grad_value_(model.parameters(), 10)
