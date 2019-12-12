@@ -68,7 +68,7 @@ valid_sampler = SubsetRandomSampler(val_indices)
 train_loader = DataLoader(data, batch_size=batch_size, sampler=train_sampler)
 validation_loader = DataLoader(data, batch_size=val_batch_size, sampler=valid_sampler)
 
-
+torch.autograd.set_detect_anomaly(True)
 # Hyperparameter
 learning_rate = float(args.lr)
 model = feedforward_50()
@@ -78,7 +78,7 @@ momentum=0.1
 
 if args.wandb: wandb.watch(model)
 optimizer = optim.Adadelta(model.parameters(), lr=learning_rate)
-criterion = RMSELoss()
+criterion = nn.MSELoss()
 
 for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     model.train()

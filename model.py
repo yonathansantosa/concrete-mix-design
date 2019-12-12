@@ -111,5 +111,6 @@ class RMSELoss(nn.Module):
         self.eps = eps
         
     def forward(self,yhat,y):
-        loss = (self.mse(yhat,y) + self.eps)**0.5
+        # loss = self.mse(yhat, y) + self.eps
+        loss = torch.sqrt(torch.mean((yhat-y)**2) + self.eps)
         return loss

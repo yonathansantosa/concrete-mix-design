@@ -107,7 +107,7 @@ if args.wandb: wandb.init(project="concrete-mix-design", name='aggregate')
 if args.wandb: wandb.watch(aggregate)
 
 
-criterion = RMSELoss()
+criterion = nn.MSELoss()
 
 for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     aggregate.train()
