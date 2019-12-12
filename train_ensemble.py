@@ -149,6 +149,6 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()
 
         if it == 1:
-            print(output+" ==> "+target)
+            print(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
     if args.wandb: wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
     
