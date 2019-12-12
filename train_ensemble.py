@@ -121,6 +121,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     aggregate.train()
     for it, (X, y) in enumerate(train_loader):
         aggregate.zero_grad()
+        y = y*data.y_std + data.y_mean
         inputs = Variable(X, requires_grad=True).to(device)
         output = aggregate.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)

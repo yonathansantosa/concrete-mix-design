@@ -7,10 +7,14 @@ class Concrete:
         dataset = np.genfromtxt(dataset_file, delimiter=';', skip_header=1)
         # self.X = torch.from_numpy(dataset[:, :-1] / dataset[:, :-1].max(0)).float().to(device)
         self.X = torch.from_numpy(dataset[:, :-1]).float().to(device)
-        self.x_bar = self.X.mean(dim=0)
-        self.std = self.X.std(dim=0)
-        self.X = (self.X - self.x_bar)/self.std
+        self.x_mean = self.X.mean(dim=0)
+        self.x_std = self.X.std(dim=0)
+        self.X = (self.X - self.x_mean)/self.x_std
+        
         self.y = torch.from_numpy(dataset[:, -1]).float().to(device)
+        self.y_mean = self.y.mean(dim=0)
+        self.y_std = self.y.std(dim=0)
+        self.y = (self.y - self.y_mean)/self.y_std
         self.model_name = model_name
 
     def __len__(self):

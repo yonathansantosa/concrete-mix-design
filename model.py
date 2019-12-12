@@ -21,17 +21,17 @@ class feedforward(nn.Module):
         self.fc12 = nn.Linear(3, 1)
     
     def forward(self, x):
-        out_fc1 = torch.tanh(self.fc1(x))
-        out_fc2 = torch.tanh(self.fc2(out_fc1))
-        out_fc3 = torch.tanh(self.fc3(out_fc2))
-        out_fc4 = torch.tanh(self.fc4(out_fc3))
-        out_fc5 = torch.tanh(self.fc5(out_fc4) + out_fc2)
-        out_fc6 = torch.tanh(self.fc6(out_fc5))
-        out_fc7 = torch.tanh(self.fc7(out_fc6) + out_fc5)
-        out_fc8 = torch.tanh(self.fc8(out_fc7))
-        out_fc9 = torch.tanh(self.fc9(out_fc8) + out_fc7)
-        out_fc10 = torch.tanh(self.fc10(out_fc9))
-        out_fc11 = torch.tanh(self.fc11(out_fc10))
+        out_fc1 = F.relu(self.fc1(x))
+        out_fc2 = F.relu(self.fc2(out_fc1))
+        out_fc3 = F.relu(self.fc3(out_fc2))
+        out_fc4 = F.relu(self.fc4(out_fc3))
+        out_fc5 = F.relu(self.fc5(out_fc4) + out_fc2)
+        out_fc6 = F.relu(self.fc6(out_fc5))
+        out_fc7 = F.relu(self.fc7(out_fc6) + out_fc5)
+        out_fc8 = F.relu(self.fc8(out_fc7))
+        out_fc9 = F.relu(self.fc9(out_fc8) + out_fc7)
+        out_fc10 = F.relu(self.fc10(out_fc9))
+        out_fc11 = F.relu(self.fc11(out_fc10))
         output = self.fc12(out_fc11)
 
         return output
