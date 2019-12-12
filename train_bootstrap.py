@@ -30,6 +30,7 @@ parser.add_argument('--bsize', default=100, help='number of bag size sample (def
 parser.add_argument('--local', default=False, action='store_true')
 parser.add_argument('--wandb', default=False, action='store_true')
 parser.add_argument('--trainable_bag', default=False, action='store_true')
+parser.add_argument('--b_max', default=2)
 parser.add_argument('--model', default='feedforward')
 
 
@@ -39,11 +40,13 @@ saved_model_path = f'trained'
 if not args.local: saved_model_path = cloud_dir + saved_model_path
 if not os.path.exists(saved_model_path): os.makedirs(saved_model_path)
 b = int(args.b)
+b_max = int(args.b_max)
 random_seed = int(args.seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-np.random.seed(random_seed+b)
-torch.manual_seed(random_seed+b)
+np.random.seed(random_seed)
+torch.manual_seed(random_seed)
 
+random_seed = np.random.randint(100, size=b_max)
 
 # Creating dataset
 batch_size = int(args.batch)
@@ -62,6 +65,7 @@ if args.wandb: wandb.init(project="concrete-mix-design", name=f'bootstrap', note
 
 # Creating PT data samplers and loaders:
 train_indices, val_indices = indices[:split], indices[split:]
+np.random.seed(random_seed[int(args.b)])
 train_indices = np.random.choice(train_indices, size=int(np.floor(len(train_indices) * .7)))
 np.random.shuffle(val_indices)
 train_sampler = SubsetRandomSampler(train_indices)

@@ -30,6 +30,7 @@ parser.add_argument('--local', default=False, action='store_true')
 parser.add_argument('--wandb', default=False, action='store_true')
 parser.add_argument('--trainable_bag', default=False, action='store_true')
 parser.add_argument('--model', default='feedforward')
+parser.add_argument('--b_max', default=2)
 
 
 args = parser.parse_args()
@@ -81,11 +82,11 @@ models = []
 models_param = []
 for b in range(b_max):
     if args.model == 'feedforward':
-        model = feedforward()
+        m = feedforward()
     elif args.model == 'feedforward_50':
-        model = feedforward_50()
+        m = feedforward_50()
     else:
-        model = cnn()
+        m = cnn()
     m.load_state_dict(torch.load(f'{saved_model_path}/model-{b}.pth'))
     # m.parameters(require_grads=False)
     m.to(device)
