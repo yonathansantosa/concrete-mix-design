@@ -98,7 +98,7 @@ class MyEnsemble(nn.Module):
 
         x_prime = torch.zeros(self.b, x.shape[0]).to(device)
         for i in range(self.b):
-            x_prime[i] = self.models[i].forward(x).squeeze()
+            x_prime[i] = self.models[i].forward(x).squeeze() / 100
 
         out = torch.sum(x_prime.view(x.shape[0], self.b) * self.divisor, dim=1, keepdim=True) 
         return out
