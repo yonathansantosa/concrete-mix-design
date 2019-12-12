@@ -126,10 +126,10 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         output = aggregate.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)
         loss = criterion(output, target)
-        l1_norm = 0.
-        for p in aggregate.parameters():
-            l1_norm += 1.0e-5*torch.norm(p, p=1)
-        loss += l1_norm
+        # l1_norm = 0.
+        # for p in aggregate.parameters():
+        #     l1_norm += 1.0e-5*torch.norm(p, p=1)
+        # loss += l1_norm
         loss.backward()
         # nn.utils.clip_grad_value_(aggregate.parameters(), 1)
         if args.wandb and it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
@@ -141,10 +141,14 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     aggregate.eval()
     val_loss = 0.
     for it, (X, y) in enumerate(train_loader):
+        y = y*data.y_std + data.y_mean
         aggregate.zero_grad()
         inputs = Variable(X, requires_grad=True).to(device)
         output = aggregate.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)
         val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()
+
+        if it == 1:
+            print(output+" ==> "+target)
     if args.wandb: wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
     
