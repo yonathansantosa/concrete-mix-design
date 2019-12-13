@@ -66,7 +66,15 @@ if args.wandb: wandb.init(project="concrete-mix-design", name=f'bootstrap', note
 # Creating PT data samplers and loaders:
 train_indices, val_indices = indices[:split], indices[split:]
 np.random.seed(random_seed[int(args.b)])
+
+data.X_mean = torch.stack([data.X[train_indices[:]]]).mean(dim=0)
+data.X_std = torch.stack([data.X[train_indices[:]]]).std(dim=0)
+
+data.y_mean = torch.stack([data.y[train_indices[:]]]).mean(dim=0)
+data.y_std = torch.stack([data.y[train_indices[:]]]).std(dim=0)
+
 train_indices = np.random.choice(train_indices, size=int(np.floor(len(train_indices) * .7)))
+
 np.random.shuffle(val_indices)
 train_sampler = SubsetRandomSampler(train_indices)
 valid_sampler = SubsetRandomSampler(val_indices)
@@ -87,7 +95,7 @@ max_epoch = int(args.maxepoch)
 momentum=0.1
 
 if args.wandb: wandb.watch(model)
-optimizer = optim.Adadelta(model.parameters(), lr=learning_rate, weight_decay=0.4, rho=0.99, eps=1.0e-8)
+optimizer = optim.Adadelta(model.parameters(), lr=learning_rate, rho=0.99, eps=1.0e-8)
 criterion = nn.MSELoss()
 
 for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
@@ -104,7 +112,9 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         # loss += l1_norm
         loss.backward()
         # nn.utils.clip_grad_value_(model.parameters(), 10)
-        if args.wandb and it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
+        if args.wandb and it==0: 
+            wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
+            tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)})
 
         optimizer.step()
         optimizer.zero_grad()
