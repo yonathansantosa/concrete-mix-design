@@ -103,9 +103,9 @@ class MyEnsemble(nn.Module):
             x_prime[i] = self.models[i].forward(x).squeeze()
 
         x_prime_t = x_prime.view(x.shape[0], self.b)
-        out = torch.sum(x_prime_t * self.divisor, dim=1, keepdim=True) 
+        # out = torch.sum(x_prime_t * self.divisor, dim=1, keepdim=True) 
         # out = self.aggregate(x_prime.view(x.shape[0], self.b))
-        # out = torch.mean(x_prime.view(x.shape[0], self.b), dim=1, keepdim=True)
+        out = torch.mean(x_prime.view(x.shape[0], self.b), dim=1, keepdim=True)
         return out
 
 class RMSELoss(nn.Module):
