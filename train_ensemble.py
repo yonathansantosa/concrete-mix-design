@@ -63,8 +63,8 @@ np.random.shuffle(indices)
 
 # Creating PT data samplers and loaders:
 train_indices, val_indices = indices[:split], indices[split:]
-test_split = int(np.floor(len(val_indices) * 0.5))
-val_indices, test_indices = val_indices[:test_split], indices[:]
+test_split = int(np.floor(len(val_indices) * 0.3))
+val_indices, test_indices = val_indices[:test_split], indices[test_split:]
 data.X_mean = data.X[train_indices[:]].mean(dim=0)
 data.X_std = data.X[train_indices[:]].std(dim=0)
 
@@ -113,9 +113,9 @@ for b in range(b_max):
 aggregate = MyEnsemble(models, b_max)
 aggregate.to(device)
 if args.trainable_bag:
-    optimizer = optim.Adadelta(list(aggregate.parameters()) + models_param, lr=learning_rate)
+    optimizer = optim.Adadelta(list(aggregate.parameters()) + models_param, lr=learning_rate, rho=0.99, eps=1.0e-8)
 else:
-    optimizer = optim.Adadelta(list(aggregate.parameters()), lr=learning_rate)
+    optimizer = optim.Adadelta(list(aggregate.parameters()), lr=learning_rate, rho=0.99, eps=1.0e-8)
 
 if args.wandb: wandb.init(project="concrete-mix-design", name='aggregate')
 if args.wandb: wandb.watch(aggregate)
@@ -123,41 +123,41 @@ if args.wandb: wandb.watch(aggregate)
 
 criterion = nn.MSELoss()
 
-# for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
-#     aggregate.train()
-#     for it, (X, y) in enumerate(train_loader):
-#         aggregate.zero_grad()
-#         inputs = Variable(X, requires_grad=True).to(device)
-#         output = aggregate.forward(inputs)
-#         target = Variable(y.unsqueeze(1)).to(device)
-#         loss = criterion(output, target)
-#         # l1_norm = 0.
-#         # for p in aggregate.parameters():
-#         #     l1_norm += 1.0e-5*torch.norm(p, p=1)
-#         # loss += l1_norm
-#         loss.backward()
-#         # nn.utils.clip_grad_value_(aggregate.parameters(), 1)
-#         if args.wandb and it==0: wandb.log({"Aggregate Train Loss": loss.data.cpu().item()}, step=epoch)
+for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
+    aggregate.train()
+    for it, (X, y) in enumerate(train_loader):
+        aggregate.zero_grad()
+        inputs = Variable(X, requires_grad=True).to(device)
+        output = aggregate.forward(inputs)
+        target = Variable(y.unsqueeze(1)).to(device)
+        loss = criterion(output, target)
+        # l1_norm = 0.
+        # for p in aggregate.parameters():
+        #     l1_norm += 1.0e-5*torch.norm(p, p=1)
+        # loss += l1_norm
+        loss.backward()
+        # nn.utils.clip_grad_value_(aggregate.parameters(), 1)
+        if args.wandb and it==0: wandb.log({"Aggregate Train Loss": loss.data.cpu().item()}, step=epoch)
 
-#         optimizer.step()
-#         optimizer.zero_grad()
+        optimizer.step()
+        optimizer.zero_grad()
 
     
-#     aggregate.eval()
-#     val_loss = 0.
-#     table = wandb.Table(columns=["id", "Predicted Label", "True Label"])
-#     c = 0
-#     for it, (X, y) in enumerate(validation_loader):
-#         aggregate.zero_grad()
-#         inputs = Variable(X, requires_grad=True).to(device)
-#         output = aggregate.forward(inputs)
-#         target = Variable(y.unsqueeze(1)).to(device)
-#         val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()/len(val_indices)
+    aggregate.eval()
+    val_loss = 0.
+    table = wandb.Table(columns=["id", "Predicted Label", "True Label"])
+    c = 0
+    for it, (X, y) in enumerate(validation_loader):
+        aggregate.zero_grad()
+        inputs = Variable(X, requires_grad=True).to(device)
+        output = aggregate.forward(inputs)
+        target = Variable(y.unsqueeze(1)).to(device)
+        val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()/len(val_indices)
 
-#         if it == 0 and not args.quiet:
-#             tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
-#     if args.wandb:
-#         wandb.log({"Aggregate Validation Loss": val_loss}, step=epoch)
+        if it == 0 and not args.quiet:
+            tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
+    if args.wandb:
+        wandb.log({"Aggregate Validation Loss": val_loss}, step=epoch)
         #     for o, t in zip(output.data.cpu().squeeze(), y.data):
         #         table.add_data(c, float(o), float(t))
         #         c += 1
