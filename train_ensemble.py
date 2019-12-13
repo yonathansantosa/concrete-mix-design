@@ -160,8 +160,9 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     if args.wandb: 
         wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
 
-x = np.arange(b_max)
-y = aggregate.divisor.data.detach().cpu().numpy()
-fig, ax = plt.subplots()
-plt.bar(x, y)
-wandb.log({"Divisor": plt})
+if args.wandb:
+    x = np.arange(b_max)
+    y = aggregate.divisor.squeeze().data.detach().cpu().numpy()
+    fig, ax = plt.subplots()
+    plt.bar(x, y)
+    wandb.log({"Divisor": plt})
