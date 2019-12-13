@@ -31,6 +31,7 @@ parser.add_argument('--wandb', default=False, action='store_true')
 parser.add_argument('--trainable_bag', default=False, action='store_true')
 parser.add_argument('--model', default='feedforward')
 parser.add_argument('--b_max', default=2)
+parser.add_argument('--quiet', default=False, action='store_true')
 
 
 args = parser.parse_args()
@@ -153,7 +154,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         target = Variable(y.unsqueeze(1)).to(device)
         val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()
 
-        if it == 1:
+        if it == 1 and not args.quiet:
             tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
     if args.wandb: wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
     

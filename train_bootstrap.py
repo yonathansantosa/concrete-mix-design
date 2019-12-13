@@ -32,6 +32,7 @@ parser.add_argument('--wandb', default=False, action='store_true')
 parser.add_argument('--trainable_bag', default=False, action='store_true')
 parser.add_argument('--b_max', default=2)
 parser.add_argument('--model', default='feedforward')
+parser.add_argument('--quiet', default=False, action='store_true')
 
 
 args = parser.parse_args()
@@ -112,8 +113,9 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         # loss += l1_norm
         loss.backward()
         # nn.utils.clip_grad_value_(model.parameters(), 10)
-        if args.wandb and it==0: 
+        if args.wandb:
             wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
+        if it == 0 and not args.quiet:
             tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
 
         optimizer.step()
