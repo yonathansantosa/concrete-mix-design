@@ -86,7 +86,9 @@ class MyEnsemble(nn.Module):
     def __init__(self, models, b=1):
         super(MyEnsemble, self).__init__()
         self.models = models
-        self.classifier = nn.Sequential(
+        self.aggregate = nn.Sequential(
+            nn.Linear(b,b),
+            nn.ReLU(),
             nn.Linear(b,1)
         )
         self.b = b
@@ -100,7 +102,8 @@ class MyEnsemble(nn.Module):
         for i in range(self.b):
             x_prime[i] = self.models[i].forward(x).squeeze()
 
-        out = torch.sum(x_prime.view(x.shape[0], self.b) * self.divisor, dim=1, keepdim=True) 
+        # out = torch.sum(x_prime.view(x.shape[0], self.b) * self.divisor, dim=1, keepdim=True) 
+        out = self.aggregate(x_prime.view(x.shape[0], self.b))
         return out
 
 class RMSELoss(nn.Module):
