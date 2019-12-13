@@ -123,7 +123,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
 
     model.eval()
     val_loss = 0.
-    for it, (X, y) in enumerate(train_loader):
+    for it, (X, y) in enumerate(validation_loader):
         model.zero_grad()
         inputs = Variable(X, requires_grad=True).to(device)
         output = model.forward(inputs)
