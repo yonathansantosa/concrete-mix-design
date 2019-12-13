@@ -150,7 +150,7 @@ aggregate.eval()
 val_loss = 0.
 table = wandb.Table(columns=["id", "Predicted Label", "True Label"])
 c = 0
-for it, (X, y) in enumerate(train_loader):
+for it, (X, y) in enumerate(validation_loader):
     aggregate.zero_grad()
     inputs = Variable(X, requires_grad=True).to(device)
     output = aggregate.forward(inputs)
@@ -164,11 +164,10 @@ for it, (X, y) in enumerate(train_loader):
         for o, t in zip(output.data.cpu().squeeze(), y.data):
             table.add_data(c, float(o), float(t))
             c += 1
-    
+        wandb.log({"examples": table})
 # if args.wandb: 
 #     wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
-if args.wandb:
-    wandb.log({"examples": table})
+
 
 if args.wandb:
     x = np.arange(b_max)
