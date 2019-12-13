@@ -184,4 +184,4 @@ if args.wandb:
     wandb.log({"Divisor": plt})
     wandb.log({"Test Loss": test_loss})
 
-print(test_loss/len(test_indices))
+print(test_loss)
