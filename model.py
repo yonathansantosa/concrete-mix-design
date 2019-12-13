@@ -42,23 +42,23 @@ class feedforward_50(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(8,50),
-            nn.Hardtanh(min_val=1, max_val=10),
+            nn.ReLU(),
             nn.Linear(50,50),
-            nn.Hardtanh(min_val=1, max_val=10),
+            nn.ReLU(),
             nn.Linear(50,50),
-            nn.Hardtanh(min_val=1, max_val=10),
+            nn.ReLU(),
             nn.Linear(50,50),
-            nn.Hardtanh(min_val=1, max_val=10),
+            nn.ReLU(),
             nn.Linear(50,50),
-            nn.Hardtanh(min_val=1, max_val=10),
+            nn.ReLU(),
             nn.Linear(50,50),
-            nn.Hardtanh(min_val=1, max_val=10),
+            nn.ReLU(),
             nn.Linear(50,50),
-            nn.Hardtanh(min_val=1, max_val=10),
+            nn.ReLU(),
             nn.Linear(50,50),
-            nn.Hardtanh(min_val=1, max_val=10),
+            nn.ReLU(),
             nn.Linear(50,50),
-            nn.Hardtanh(min_val=1, max_val=10),
+            nn.ReLU(),
             nn.Linear(50,1)
         )
     
