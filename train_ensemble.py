@@ -156,5 +156,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
 
         if it == 1 and not args.quiet:
             tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
-    if args.wandb: wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
+    if args.wandb: 
+        wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
+        wandb.log({"Divisor": aggregate.divisor.data})
     
