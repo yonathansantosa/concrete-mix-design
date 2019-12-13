@@ -14,6 +14,7 @@ import numpy as np
 
 from data.dataset import Concrete
 from model import feedforward, MyEnsemble, cnn, feedforward_50, RMSELoss
+import matplotlib.pyplot as plt
 
 # *Argument parser
 parser = argparse.ArgumentParser(
@@ -159,4 +160,8 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     if args.wandb: 
         wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
 
-wandb.log({"Divisor": aggregate.divisor.data.cpu()})
+x = np.arange(b_max)
+y = aggregate.divisor.data.detach().cpu().numpy()
+fig, ax = plt.subplots()
+plt.bar(x, y)
+wandb.log({"Divisor": plt})
