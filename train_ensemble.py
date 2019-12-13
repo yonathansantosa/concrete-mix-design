@@ -63,7 +63,8 @@ np.random.shuffle(indices)
 
 # Creating PT data samplers and loaders:
 train_indices, val_indices = indices[:split], indices[split:]
-
+test_split = int(np.floor(len(val_indices) * 0.5))
+val_indices, test_indices = val_indices[:test_split], indices[test_split:]
 data.X_mean = data.X[train_indices[:]].mean(dim=0)
 data.X_std = data.X[train_indices[:]].std(dim=0)
 
@@ -74,8 +75,10 @@ np.random.shuffle(train_indices)
 np.random.shuffle(val_indices)
 train_sampler = SubsetRandomSampler(train_indices)
 valid_sampler = SubsetRandomSampler(val_indices)
+test_sampler = SubsetRandomSampler(test_indices)
 train_loader = DataLoader(data, batch_size=batch_size, sampler=train_sampler)
 validation_loader = DataLoader(data, batch_size=val_batch_size, sampler=valid_sampler)
+test_loader = DataLoader(data, batch_size=val_batch_size, sampler=test_sampler)
 
 # Hyperparameter
 learning_rate = float(args.lr)
@@ -106,12 +109,6 @@ for b in range(b_max):
     else:
         m.eval()
     models += [m]
-    
-
-train_indices = indices[:split]
-np.random.shuffle(train_indices)
-train_sampler = SubsetRandomSampler(train_indices)
-train_loader = DataLoader(data, batch_size=batch_size, sampler=train_sampler)
 
 aggregate = MyEnsemble(models, b_max)
 aggregate.to(device)
@@ -155,19 +152,29 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         inputs = Variable(X, requires_grad=True).to(device)
         output = aggregate.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)
-        val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()
+        val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()/len(val_indices)
 
         if it == 0 and not args.quiet:
             tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
-        if args.wandb and it==0:
-            wandb.log({"Aggregate Validation Loss": val_loss/len(val_indices)}, step=epoch)
-            for o, t in zip(output.data.cpu().squeeze(), y.data):
-                table.add_data(c, float(o), float(t))
-                c += 1
-            wandb.log({"examples": table})
+    if args.wandb:
+        wandb.log({"Aggregate Validation Loss": val_loss}, step=epoch)
+        #     for o, t in zip(output.data.cpu().squeeze(), y.data):
+        #         table.add_data(c, float(o), float(t))
+        #         c += 1
+        #     wandb.log({"examples": table})
 # if args.wandb: 
 #     wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
 
+test_loss = 0.
+for it, (X, y) in enumerate(test_loader):
+    aggregate.zero_grad()
+    inputs = Variable(X, requires_grad=True).to(device)
+    output = aggregate.forward(inputs)
+    target = Variable(y.unsqueeze(1)).to(device)
+    test_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()/len(test_indices)
+
+    if it == 0 and not args.quiet:
+        tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
 
 if args.wandb:
     x = np.arange(b_max)
@@ -175,5 +182,6 @@ if args.wandb:
     fig, ax = plt.subplots()
     plt.bar(x, y)
     wandb.log({"Divisor": plt})
+    wandb.log({"Test Loss": test_loss})
 
 print(val_loss/len(val_indices))
