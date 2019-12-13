@@ -140,7 +140,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         # loss += l1_norm
         loss.backward()
         # nn.utils.clip_grad_value_(aggregate.parameters(), 1)
-        if args.wandb and it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
+        if args.wandb and it==0: wandb.log({"Aggregate Train Loss": loss.data.cpu().item()}, step=epoch)
 
         optimizer.step()
         optimizer.zero_grad()
@@ -160,7 +160,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         if it == 0 and not args.quiet:
             tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
         if args.wandb and it==0:
-            wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=it)
+            wandb.log({"Aggregate Validation Loss": val_loss/len(val_indices)}, step=it)
             for o, t in zip(output.data.cpu().squeeze(), y.data):
                 table.add_data(c, float(o), float(t))
                 c += 1
