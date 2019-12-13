@@ -61,6 +61,13 @@ np.random.shuffle(indices)
 
 # Creating PT data samplers and loaders:
 train_indices, val_indices = indices[:split], indices[split:]
+
+data.X_mean = data.X[train_indices[:]].mean(dim=0)
+data.X_std = data.X[train_indices[:]].std(dim=0)
+
+data.y_mean = data.y[train_indices[:]].mean(dim=0)
+data.y_std = data.y[train_indices[:]].std(dim=0)
+
 np.random.shuffle(train_indices)
 np.random.shuffle(val_indices)
 train_sampler = SubsetRandomSampler(train_indices)
