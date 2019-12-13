@@ -114,7 +114,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         # nn.utils.clip_grad_value_(model.parameters(), 10)
         if args.wandb and it==0: 
             wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
-            tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)})
+            tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
 
         optimizer.step()
         optimizer.zero_grad()
