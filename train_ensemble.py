@@ -128,7 +128,6 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     aggregate.train()
     for it, (X, y) in enumerate(train_loader):
         aggregate.zero_grad()
-        y = y*data.y_std + data.y_mean
         inputs = Variable(X, requires_grad=True).to(device)
         output = aggregate.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)
@@ -148,10 +147,9 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     aggregate.eval()
     val_loss = 0.
     for it, (X, y) in enumerate(train_loader):
-        y = y*data.y_std + data.y_mean
         aggregate.zero_grad()
         inputs = Variable(X, requires_grad=True).to(device)
-        output = aggregate.forward(inputs)*data.y_std + data.y_mean
+        output = aggregate.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)
         val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()
 
