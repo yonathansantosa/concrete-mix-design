@@ -67,11 +67,11 @@ if args.wandb: wandb.init(project="concrete-mix-design", name=f'bootstrap', note
 train_indices, val_indices = indices[:split], indices[split:]
 np.random.seed(random_seed[int(args.b)])
 
-data.X_mean = torch.stack([data.X[train_indices[:]]]).mean(dim=0)
-data.X_std = torch.stack([data.X[train_indices[:]]]).std(dim=0)
+data.X_mean = data.X[train_indices[:]].mean(dim=0)
+data.X_std = data.X[train_indices[:]].std(dim=0)
 
-data.y_mean = torch.stack([data.y[train_indices[:]]]).mean(dim=0)
-data.y_std = torch.stack([data.y[train_indices[:]]]).std(dim=0)
+data.y_mean = data.y[train_indices[:]].mean(dim=0)
+data.y_std = data.y[train_indices[:]].std(dim=0)
 
 train_indices = np.random.choice(train_indices, size=int(np.floor(len(train_indices) * .7)))
 
