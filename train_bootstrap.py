@@ -15,6 +15,8 @@ import numpy as np
 from data.dataset import Concrete
 from model import feedforward, MyEnsemble, cnn, feedforward_50, RMSELoss
 
+from cross_val import cross_val
+
 # *Argument parser
 parser = argparse.ArgumentParser(
     description='Conditional Text Generation: Train Discriminator'
@@ -31,6 +33,7 @@ parser.add_argument('--local', default=False, action='store_true')
 parser.add_argument('--wandb', default=False, action='store_true')
 parser.add_argument('--trainable_bag', default=False, action='store_true')
 parser.add_argument('--b_max', default=2)
+parser.add_argument('--k', default=10)
 parser.add_argument('--model', default='feedforward')
 parser.add_argument('--quiet', default=False, action='store_true')
 
@@ -65,7 +68,7 @@ np.random.shuffle(indices)
 if args.wandb: wandb.init(project="concrete-mix-design", name=f'bootstrap', notes=f'{b}')
 
 # Creating PT data samplers and loaders:
-train_indices, val_indices = indices[:split], indices[split:]
+train_indices, test_indices = indices[:split], indices[split:]
 np.random.seed(random_seed[int(args.b)])
 
 data.X_mean = data.X[train_indices[:]].mean(dim=0)
@@ -76,15 +79,12 @@ data.y_std = data.y[train_indices[:]].std(dim=0)
 
 train_indices = np.random.choice(train_indices, size=int(np.floor(len(train_indices) * .7)))
 
-np.random.shuffle(val_indices)
-train_sampler = SubsetRandomSampler(train_indices)
-valid_sampler = SubsetRandomSampler(val_indices)
-train_loader = DataLoader(data, batch_size=batch_size, sampler=train_sampler)
-validation_loader = DataLoader(data, batch_size=val_batch_size, sampler=valid_sampler)
-
-torch.autograd.set_detect_anomaly(True)
 # Hyperparameter
 learning_rate = float(args.lr)
+max_epoch = int(args.maxepoch)
+momentum=0.1
+k = int(args.k)
+
 if args.model == 'feedforward':
     model = feedforward()
 elif args.model == 'feedforward_50':
@@ -92,44 +92,52 @@ elif args.model == 'feedforward_50':
 else:
     model = cnn()
 model.to(device)
-max_epoch = int(args.maxepoch)
-momentum=0.1
 
 if args.wandb: wandb.watch(model)
 optimizer = optim.Adadelta(model.parameters(), lr=learning_rate, rho=0.99, eps=1.0e-8)
 criterion = nn.MSELoss()
 
-for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
-    model.train()
-    for it, (X, y) in enumerate(train_loader):
-        model.zero_grad()
-        inputs = Variable(X, requires_grad=True).to(device)
-        output = model.forward(inputs)
-        target = Variable(y.unsqueeze(1)).to(device)
-        loss = criterion(output, target)
-        # l1_norm = 0.
-        # for p in model.parameters():
-        #     l1_norm += 1.0e-5*torch.norm(p, p=1)
-        # loss += l1_norm
-        loss.backward()
-        # nn.utils.clip_grad_value_(model.parameters(), 10)
-        if args.wandb:
-            wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
-        if it == 0 and not args.quiet:
-            tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
+best_params = cross_val(train_indices, optimizer, criterion, model, data, batch_size, k, max_epoch)
+model.load_state_dict(best_params)
+if args.wandb: wandb.watch(model)
 
-        optimizer.step()
-        optimizer.zero_grad()
+# for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
+#     model.train()
+#     for it, (X, y) in enumerate(train_loader):
+#         model.zero_grad()
+#         inputs = Variable(X, requires_grad=True).to(device)
+#         output = model.forward(inputs)
+#         target = Variable(y.unsqueeze(1)).to(device)
+#         loss = criterion(output, target)
+#         # l1_norm = 0.
+#         # for p in model.parameters():
+#         #     l1_norm += 1.0e-5*torch.norm(p, p=1)
+#         # loss += l1_norm
+#         loss.backward()
+#         # nn.utils.clip_grad_value_(model.parameters(), 10)
+#         if args.wandb:
+#             wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
+#         if it == 0 and not args.quiet:
+#             tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
 
-    model.eval()
-    val_loss = 0.
-    for it, (X, y) in enumerate(validation_loader):
-        model.zero_grad()
-        inputs = Variable(X, requires_grad=True).to(device)
-        output = model.forward(inputs)
-        target = Variable(y.unsqueeze(1)).to(device)
-        val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()
-    if args.wandb: wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
+#         optimizer.step()
+#         optimizer.zero_grad()
 
+#     model.eval()
+#     val_loss = 0.
+#     for it, (X, y) in enumerate(validation_loader):
+#         model.zero_grad()
+#         inputs = Variable(X, requires_grad=True).to(device)
+#         output = model.forward(inputs)
+#         target = Variable(y.unsqueeze(1)).to(device)
+#         val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()
+#     if args.wandb: wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
+if args.wandb:
+    train_loss = np.loadtxt('train.csv')
+    validation_loss = np.loadtxt('validation.csv')
+    for i, (t, v) in enumerate(zip(train_loss, validation_loss)):
+        wandb.log({"Train Loss": t}, step=i+1)
+        wandb.log({"Validation Loss": v}, step=i+1)
+        
 torch.save(model.state_dict(), f'{saved_model_path}/model-{b}.pth')
 

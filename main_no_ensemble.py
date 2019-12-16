@@ -7,6 +7,8 @@ import torch.optim as optim
 from torch.utils.data import SubsetRandomSampler, DataLoader
 from torch.autograd import Variable
 
+from cross_val import cross_val
+
 import argparse
 from tqdm import trange, tqdm
 import os
@@ -15,7 +17,6 @@ import numpy as np
 
 from data.dataset import Concrete
 from model import feedforward, MyEnsemble, cnn, feedforward_50, RMSELoss
-
 
 # *Argument parser
 parser = argparse.ArgumentParser(
@@ -46,66 +47,65 @@ torch.manual_seed(random_seed)
 # Creating dataset
 batch_size = int(args.batch)
 val_batch_size = int(args.batch)
-validation_split = .8
+test_batch_size = int(args.batch)
+test_split = .8
+k = 5
 dataset_folder = 'data/'
 data = Concrete(dataset_folder+'concrete.csv', model_name=args.model)
 
 # Creating dataset split
 data_size = len(data)
 indices = list(range(data_size))
-split = int(np.floor(validation_split * data_size))
+split = int(np.floor(test_split * data_size))
 np.random.shuffle(indices)
 
 if args.wandb: wandb.init(project="concrete-mix-design", name="no bagging")
 
 # Creating PT data samplers and loaders:
-train_indices, val_indices = indices[:split], indices[split:]
+train_indices, test_indices = indices[:split], indices[split:]
 # train_indices = np.random.choice(train_indices, size=(int(args.bsize)))
-np.random.shuffle(train_indices)
-np.random.shuffle(val_indices)
-train_sampler = SubsetRandomSampler(train_indices)
-valid_sampler = SubsetRandomSampler(val_indices)
-train_loader = DataLoader(data, batch_size=batch_size, sampler=train_sampler)
-validation_loader = DataLoader(data, batch_size=val_batch_size, sampler=valid_sampler)
+test_sampler = SubsetRandomSampler(test_indices)
+test_loader = DataLoader(data, batch_size=test_batch_size, sampler=test_sampler)
+data.X_mean = data.X[train_indices[:]].mean(dim=0)
+data.X_std = data.X[train_indices[:]].std(dim=0)
 
+data.y_mean = data.y[train_indices[:]].mean(dim=0)
+data.y_std = data.y[train_indices[:]].std(dim=0)
 
 # Hyperparameter
 learning_rate = float(args.lr)
+max_epoch = int(args.maxepoch)
+momentum=0.1
+
 if args.model == 'feedforward':
     model = feedforward()
 elif args.model == 'feedforward_50':
     model = feedforward_50()
 else:
     model = cnn()
-model.to(device)
-max_epoch = int(args.maxepoch)
-momentum=0.1
 
-if args.wandb: wandb.watch(model)
-optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, nesterov=True)
+model.to(device)
+optimizer = optim.Adadelta(model.parameters(), lr=learning_rate, rho=0.99, eps=1.0e-8)
 criterion = nn.MSELoss()
 
-for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
-    model.train()
-    for it, (X, y) in enumerate(train_loader):
-        model.zero_grad()
-        inputs = Variable(X, requires_grad=True).to(device)
-        output = model.forward(inputs)
-        target = Variable(y.unsqueeze(1)).to(device)
-        loss = criterion(output, target)
-        loss.backward()
-        
-        if args.wandb and it==0: wandb.log({"Train Loss": loss.data.cpu().item()}, step=epoch)
+best_params = cross_val(train_indices, optimizer, criterion, model, data, batch_size, k, max_epoch)
+model.load_state_dict(best_params)
+if args.wandb: wandb.watch(model)
 
-        optimizer.step()
-        optimizer.zero_grad()
+model.eval()
+test_loss = 0.
 
-    model.eval()
-    val_loss = 0.
-    for it, (X, y) in enumerate(train_loader):
-        model.zero_grad()
-        inputs = Variable(X, requires_grad=True).to(device)
-        output = model.forward(inputs)
-        target = Variable(y.unsqueeze(1)).to(device)
-        val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()
-    if args.wandb: wandb.log({"Validation Loss": val_loss/len(val_indices)}, step=epoch)
+for it, (X, y) in enumerate(test_loader):
+    model.zero_grad()
+    inputs = Variable(X, requires_grad=True).to(device)
+    output = model.forward(inputs)
+    target = Variable(y.unsqueeze(1)).to(device)
+    test_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()/len(test_indices)
+
+if args.wandb:
+    train_loss = np.loadtxt('train.csv')
+    validation_loss = np.loadtxt('validation.csv')
+    wandb.log({'Test Loss': test_loss})
+    for i, (t, v) in enumerate(zip(train_loss, validation_loss)):
+        wandb.log({"Train Loss": t}, step=i+1)
+        wandb.log({"Validation Loss": v}, step=i+1)

@@ -62,9 +62,8 @@ split = int(np.floor(validation_split * data_size))
 np.random.shuffle(indices)
 
 # Creating PT data samplers and loaders:
-train_indices, val_indices = indices[:split], indices[split:]
-test_split = int(np.floor(len(val_indices) * 0.3))
-val_indices, test_indices = val_indices[:test_split], indices[test_split:]
+train_indices, test_indices = indices[:split], indices[split:]
+
 data.X_mean = data.X[train_indices[:]].mean(dim=0)
 data.X_std = data.X[train_indices[:]].std(dim=0)
 
@@ -72,12 +71,10 @@ data.y_mean = data.y[train_indices[:]].mean(dim=0)
 data.y_std = data.y[train_indices[:]].std(dim=0)
 
 np.random.shuffle(train_indices)
-np.random.shuffle(val_indices)
+np.random.shuffle(test_indices)
 train_sampler = SubsetRandomSampler(train_indices)
-valid_sampler = SubsetRandomSampler(val_indices)
 test_sampler = SubsetRandomSampler(test_indices)
 train_loader = DataLoader(data, batch_size=batch_size, sampler=train_sampler)
-validation_loader = DataLoader(data, batch_size=val_batch_size, sampler=valid_sampler)
 test_loader = DataLoader(data, batch_size=val_batch_size, sampler=test_sampler)
 
 # Hyperparameter
@@ -147,12 +144,12 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     val_loss = 0.
     table = wandb.Table(columns=["id", "Predicted Label", "True Label"])
     c = 0
-    for it, (X, y) in enumerate(validation_loader):
+    for it, (X, y) in enumerate(test_loader):
         aggregate.zero_grad()
         inputs = Variable(X, requires_grad=True).to(device)
         output = aggregate.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)
-        val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()/len(val_indices)
+        val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()/len(test_indices)
 
         if it == 0 and not args.quiet:
             tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')

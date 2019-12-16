@@ -36,6 +36,10 @@ class feedforward(nn.Module):
 
         return output
 
+    def reset(self):
+        self.__init__()
+
+        
 class feedforward_50(nn.Module):
     def __init__(self):
         super(feedforward_50, self).__init__()
@@ -67,6 +71,10 @@ class feedforward_50(nn.Module):
 
         return output
 
+    def reset(self):
+        self.__init__()
+
+
 class cnn(nn.Module):
     def __init__(self):
         super(cnn, self).__init__()
@@ -81,6 +89,10 @@ class cnn(nn.Module):
         out_conv = self.conv(x).view(x.shape[0],8)
         out = self.ff(out_conv)
         return out
+
+    def reset(self):
+        self.__init__()
+
 
 class MyEnsemble(nn.Module):
     def __init__(self, models, b=1):
@@ -108,6 +120,10 @@ class MyEnsemble(nn.Module):
         # out = torch.mean(x_prime.view(x.shape[0], self.b), dim=1, keepdim=True)
         return out
 
+    def reset(self):
+        self.__init__()
+
+
 class RMSELoss(nn.Module):
     def __init__(self, eps=1e-6):
         super().__init__()
@@ -118,3 +134,6 @@ class RMSELoss(nn.Module):
         # loss = self.mse(yhat, y) + self.eps
         loss = torch.sqrt(torch.mean((yhat-y)**2) + self.eps)
         return loss
+
+    def reset(self):
+        self.__init__()
