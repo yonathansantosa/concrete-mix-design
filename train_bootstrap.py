@@ -93,13 +93,12 @@ else:
     model = cnn()
 model.to(device)
 
-if args.wandb: wandb.watch(model)
 optimizer = optim.Adadelta(model.parameters(), lr=learning_rate, rho=0.99, eps=1.0e-8)
 criterion = nn.MSELoss()
 
 best_params = cross_val(train_indices, optimizer, criterion, model, data, batch_size, k, max_epoch)
 model.load_state_dict(best_params)
-if args.wandb: wandb.watch(model)
+# if args.wandb: wandb.watch(model)
 
 # for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
 #     model.train()

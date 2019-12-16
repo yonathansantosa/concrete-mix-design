@@ -8,3 +8,5 @@ drawing/
 train.csv
 validation.csv
 main_no_ensemble copy.py
+skorch
+skorch
