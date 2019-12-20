@@ -156,10 +156,10 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
             tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
     if args.wandb:
         wandb.log({"Aggregate Validation Loss": val_loss}, step=epoch)
-            for o, t in zip(output.data.cpu().squeeze(), y.data):
-                table.add_data(c, float(o), float(t))
-                c += 1
-            wandb.log({"examples": table})
+        # for o, t in zip(output.data.cpu().squeeze(), y.data):
+        #     table.add_data(c, float(o), float(t))
+        #     c += 1
+        # wandb.log({"examples": table})
 
 test_loss = 0.
 for it, (X, y) in enumerate(test_loader):
