@@ -75,5 +75,5 @@ def cross_val(
             np.savetxt("validation.csv", validation_loss, delimiter=",")
             best_params = model.state_dict()
             None
-
+    print(val_loss_min)
     return best_params
