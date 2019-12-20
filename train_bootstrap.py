@@ -57,7 +57,8 @@ batch_size = int(args.batch)
 val_batch_size = int(args.batch)
 validation_split = .8
 dataset_folder = 'data/'
-data = Concrete(dataset_folder+'concrete.csv', args.model)
+# data = Concrete(dataset_folder+'concrete.csv', args.model)
+data = Concrete(dataset_folder+'concrete_no_day1.csv', args.model)
 
 # Creating dataset split
 data_size = len(data)
