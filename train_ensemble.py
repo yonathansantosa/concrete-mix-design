@@ -140,7 +140,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         # nn.utils.clip_grad_value_(aggregate.parameters(), 1)
         if args.wandb and it==0: 
             wandb.log({"Aggregate Train Loss": loss.data.cpu().item()}, step=epoch)
-        if it==0 and not args.quiet: tqdm.write(f'{models_out[0].detach().cpu().numpy()} =====> {output[0].data.cpu().item()} || {y[0].data.cpu().item()}')
+        # if it==0 and not args.quiet: tqdm.write(f'{models_out[0].detach().cpu().numpy()} =====> {output[0].data.cpu().item()} || {y[0].data.cpu().item()}')
         optimizer.step()
         optimizer.zero_grad()
 
@@ -151,13 +151,18 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
 #     c = 0
     for it, (X, y) in enumerate(test_loader):
         aggregate.zero_grad()
-        inputs = Variable(X, requires_grad=True).to(device)
+        inputs = Variable(X).to(device)
         _, output = aggregate.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)
         val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()/len(test_indices)
 
         if it == 0 and not args.quiet:
-            tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
+            X_test = torch.tensor([139.6,209.4,0.0,192.0,0.0,1047.0,806.9,3])
+            y_test = torch.tensor([[8.06]])
+            inputs_test = Variable(X_test),to(device)
+            models_out, output = aggregate.forward(inputs)
+            tqdm.write(f'{models_out[0].detach().cpu().numpy()} =====> {output[0].data.cpu().item()} || {y[0].data.cpu().item()}')
+            # tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
     if args.wandb:
         wandb.log({"Aggregate Validation Loss": val_loss}, step=epoch)
         # for o, t in zip(output.data.cpu().squeeze(), y.data):
