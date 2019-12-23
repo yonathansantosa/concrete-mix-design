@@ -16,6 +16,7 @@ from data.dataset import Concrete
 from model import feedforward, MyEnsemble, cnn, feedforward_50, RMSELoss
 import matplotlib.pyplot as plt
 
+np.set_printoptions(precision=2)
 # *Argument parser
 parser = argparse.ArgumentParser(
     description='Conditional Text Generation: Train Discriminator'
