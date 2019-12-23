@@ -80,7 +80,7 @@ np.random.shuffle(test_indices)
 train_sampler = SubsetRandomSampler(train_indices)
 test_sampler = SubsetRandomSampler(test_indices)
 train_loader = DataLoader(data, batch_size=batch_size, sampler=train_sampler)
-test_loader = DataLoader(data, batch_size=val_batch_size, sampler=test_sampler)
+test_loader = DataLoader(data, batch_size=1, sampler=test_sampler)
 
 # Hyperparameter
 learning_rate = float(args.lr)
