@@ -120,8 +120,8 @@ class MyEnsemble(nn.Module):
 
         x_prime_t = x_prime.view(x.shape[0], self.b)
         # out = torch.sum(x_prime_t * self.divisor, dim=1, keepdim=True) 
-        out = self.aggregate(x_prime.view(x.shape[0], self.b))
-        # out = torch.mean(x_prime.view(x.shape[0], self.b), dim=1, keepdim=True)
+        # out = self.aggregate(x_prime.view(x.shape[0], self.b))
+        out = torch.mean(x_prime_t, dim=1, keepdim=True)
         return x_prime_t, out
 
 
