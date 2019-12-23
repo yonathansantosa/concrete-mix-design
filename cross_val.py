@@ -67,7 +67,7 @@ def cross_val(
                 output = model.forward(inputs)
                 target = Variable(y.unsqueeze(1)).to(device)
                 val_loss += F.mse_loss(output, target, reduction='sum').data.cpu().item()
-            validation_loss[epoch] = float(val_loss/(len(validation_cross_indices))
+            validation_loss[epoch] = float(val_loss/(len(validation_cross_indices)))
 
         if validation_loss[-1] < val_loss_min:
             val_loss_min = validation_loss[-1]
