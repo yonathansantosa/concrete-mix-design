@@ -157,7 +157,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         target = Variable(y.unsqueeze(1)).to(device)
         val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()/len(test_indices)
 
-        if it == 0 and not args.quiet:
+        if it == 0 and not args.quiet and epoch % 5 == 0:
             X_test = (torch.tensor([139.6,209.4,0.0,192.0,0.0,1047.0,806.9,3]).to(device) - data.X_mean)/data.X_std
             y_test = torch.tensor([[8.06]])
             inputs_test = Variable(X_test)
