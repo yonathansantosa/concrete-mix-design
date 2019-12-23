@@ -101,6 +101,10 @@ class MyEnsemble(nn.Module):
         self.aggregate = nn.Sequential(
             nn.Linear(b,b),
             nn.ReLU(),
+            nn.Linear(b,b),
+            nn.ReLU(),
+            nn.Linear(b,b),
+            nn.ReLU(),
             nn.Linear(b,1)
         )
         self.b = b
@@ -115,13 +119,10 @@ class MyEnsemble(nn.Module):
             x_prime[i] = self.models[i].forward(x).squeeze()
 
         x_prime_t = x_prime.view(x.shape[0], self.b)
-        out = torch.sum(x_prime_t * self.divisor, dim=1, keepdim=True) 
-        # out = self.aggregate(x_prime.view(x.shape[0], self.b))
+        # out = torch.sum(x_prime_t * self.divisor, dim=1, keepdim=True) 
+        out = self.aggregate(x_prime.view(x.shape[0], self.b))
         # out = torch.mean(x_prime.view(x.shape[0], self.b), dim=1, keepdim=True)
-        return out
-
-    def reset(self):
-        self.__init__()
+        return x_prime_t, out
 
 
 class RMSELoss(nn.Module):

@@ -33,6 +33,7 @@ parser.add_argument('--trainable_bag', default=False, action='store_true')
 parser.add_argument('--model', default='feedforward')
 parser.add_argument('--b_max', default=2)
 parser.add_argument('--quiet', default=False, action='store_true')
+parser.add_argument('--usebest', default=None)
 
 
 args = parser.parse_args()
@@ -45,6 +46,8 @@ random_seed = int(args.seed)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 np.random.seed(random_seed)
 torch.manual_seed(random_seed)
+if args.usebest is not None:
+    usebest=int(args.usebest)
 
 
 # Creating dataset
@@ -126,7 +129,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     for it, (X, y) in enumerate(train_loader):
         aggregate.zero_grad()
         inputs = Variable(X, requires_grad=True).to(device)
-        output = aggregate.forward(inputs)
+        models_out, output = aggregate.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)
         loss = criterion(output, target)
         # l1_norm = 0.
@@ -135,8 +138,9 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         # loss += l1_norm
         loss.backward()
         # nn.utils.clip_grad_value_(aggregate.parameters(), 1)
-        if args.wandb and it==0: wandb.log({"Aggregate Train Loss": loss.data.cpu().item()}, step=epoch)
-
+        if args.wandb and it==0: 
+            wandb.log({"Aggregate Train Loss": loss.data.cpu().item()}, step=epoch)
+        if it==0: tqdm.write(models_out[0].detach().cpu().numpy(), '=====>', output[0].data.cpu().item(), ' || ', y[0].data.cpu().item())
         optimizer.step()
         optimizer.zero_grad()
 
@@ -148,7 +152,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     for it, (X, y) in enumerate(test_loader):
         aggregate.zero_grad()
         inputs = Variable(X, requires_grad=True).to(device)
-        output = aggregate.forward(inputs)
+        _, output = aggregate.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)
         val_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()/len(test_indices)
 
@@ -165,7 +169,7 @@ test_loss = 0.
 for it, (X, y) in enumerate(test_loader):
     aggregate.zero_grad()
     inputs = Variable(X, requires_grad=True).to(device)
-    output = aggregate.forward(inputs)
+    _, output = aggregate.forward(inputs)
     target = Variable(y.unsqueeze(1)).to(device)
     test_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()/len(test_indices)
 
