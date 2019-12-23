@@ -162,7 +162,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
             y_test = torch.tensor([[8.06]])
             inputs_test = Variable(X_test)
             models_out, output = aggregate.forward(inputs_test)
-            tqdm.write(f'{models_out[0].detach().cpu().numpy()} =====> {output[0].data.cpu().item()} || {y_test[0].data.cpu().item()}')
+            tqdm.write(f'{models_out[0].detach().cpu().numpy()} =====> {output[0].data.cpu().item():.2f} || {y_test[0].data.cpu().item():.2f}')
             # tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
     if args.wandb:
         wandb.log({"Aggregate Validation Loss": val_loss}, step=epoch)
