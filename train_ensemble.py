@@ -181,7 +181,7 @@ test_loss = 0.
 for it, (X, y) in enumerate(test_loader):
     aggregate.zero_grad()
     inputs = Variable(X, requires_grad=True).to(device)
-    _, output = aggregate.forward(inputs)
+    models_out, output = aggregate.forward(inputs)
     target = Variable(y.unsqueeze(1)).to(device)
     test_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()/len(test_indices)
 
