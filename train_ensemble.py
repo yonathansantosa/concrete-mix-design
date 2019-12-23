@@ -183,7 +183,7 @@ for it, (X, y) in enumerate(test_loader):
     inputs = Variable(X, requires_grad=True).to(device)
     models_out, output = aggregate.forward(inputs)
     target = Variable(y.unsqueeze(1)).to(device)
-    test_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()/len(test_indices)
+    test_loss += F.mse_loss(output, target, reduction='sum').data.cpu().item()
 
     if it % 5 == 0 and not args.quiet:
         tqdm.write(f'{models_out[0].detach().cpu().numpy()} ==> {float(output[0].cpu().data):.2f} || {float(target[0].cpu().data):.2f}')
@@ -194,6 +194,6 @@ if args.wandb:
     fig, ax = plt.subplots()
     plt.bar(x, y)
     wandb.log({"Divisor": plt})
-    wandb.log({"Test Loss": test_loss})
+    wandb.log({"Test Loss": test_loss/len(test_indices)})
 
-print(test_loss)
+print(test_loss/len(test_indices))
