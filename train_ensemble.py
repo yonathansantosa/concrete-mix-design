@@ -140,7 +140,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         # nn.utils.clip_grad_value_(aggregate.parameters(), 1)
         if args.wandb and it==0: 
             wandb.log({"Aggregate Train Loss": loss.data.cpu().item()}, step=epoch)
-        if it==0: tqdm.write(f'{models_out[0].detach().cpu().numpy()} =====> {output[0].data.cpu().item()} || {y[0].data.cpu().item()}')
+        if it==0 and not args.quiet: tqdm.write(f'{models_out[0].detach().cpu().numpy()} =====> {output[0].data.cpu().item()} || {y[0].data.cpu().item()}')
         optimizer.step()
         optimizer.zero_grad()
 
