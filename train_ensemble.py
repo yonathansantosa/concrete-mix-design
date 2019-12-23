@@ -124,7 +124,7 @@ if args.wandb: wandb.watch(aggregate)
 
 
 criterion = nn.MSELoss()
-'''
+
 for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     aggregate.train()
     for it, (X, y) in enumerate(train_loader):
@@ -171,7 +171,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         #     table.add_data(c, float(o), float(t))
         #     c += 1
         # wandb.log({"examples": table})
-'''
+
 X_test = (torch.tensor([139.6,209.4,0.0,192.0,0.0,1047.0,806.9,3]).to(device) - data.X_mean)/data.X_std
 y_test = torch.tensor([[8.06]])
 inputs_test = Variable(X_test)
