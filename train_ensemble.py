@@ -185,8 +185,8 @@ for it, (X, y) in enumerate(test_loader):
     target = Variable(y.unsqueeze(1)).to(device)
     test_loss += F.mse_loss(output, target, reduction='sum').sum().data.cpu().item()/len(test_indices)
 
-    if it == 0 and not args.quiet:
-        tqdm.write(f'{float(output[0].cpu().data)} ==> {float(target[0].cpu().data)}')
+    if it % 5 == 0 and not args.quiet:
+        tqdm.write(f'{models_out[0].detach().cpu().numpy()} ==> {float(output[0].cpu().data):.2f} || {float(target[0].cpu().data):.2f}')
 
 if args.wandb:
     x = np.arange(b_max)
