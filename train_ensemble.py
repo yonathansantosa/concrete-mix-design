@@ -123,7 +123,7 @@ if args.wandb: wandb.init(project="concrete-mix-design", name='aggregate')
 if args.wandb: wandb.watch(aggregate)
 
 
-criterion = nn.MSELoss()
+criterion = nn.MSELoss(reduction='sum')
 
 for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     aggregate.train()
@@ -133,7 +133,7 @@ for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
         inputs = Variable(X, requires_grad=True).to(device)
         models_out, output = aggregate.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)
-        loss += criterion(output, target)
+        loss += criterion(output, target)/len(train_loader)
         # l1_norm = 0.
         # for p in aggregate.parameters():
         #     l1_norm += 1.0e-5*torch.norm(p, p=1)
