@@ -41,8 +41,6 @@ def cross_val(
         model.to(device)
         train_loss = np.zeros(max_epoch)
         validation_loss = np.zeros(max_epoch)
-        validation_loss_min = np.zeros(max_epoch)
-        train_loss_min = np.zeros(max_epoch)
 
         optimizer = optim.Adadelta(model.parameters(), lr=1, rho=0.99, eps=1.0e-8)
 
@@ -73,12 +71,9 @@ def cross_val(
 
         if validation_loss[-1] < val_loss_min:
             val_loss_min = validation_loss[-1]
-            validation_loss_min = np.copy(validation_loss)
-            train_loss_min = np.copy(train_loss)
+            np.savetxt("train.csv", train_loss, delimiter=",")
+            np.savetxt("validation.csv", validation_loss, delimiter=",")
             best_params = model.state_dict()
             None
-    
-    np.savetxt("train.csv", train_loss_min, delimiter=",")
-    np.savetxt("validation.csv", validation_loss_min, delimiter=",")
     print(val_loss_min)
     return best_params
