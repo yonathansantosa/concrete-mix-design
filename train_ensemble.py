@@ -123,28 +123,27 @@ if args.wandb: wandb.init(project="concrete-mix-design", name='aggregate')
 if args.wandb: wandb.watch(aggregate)
 
 
-criterion = nn.MSELoss(reduction='sum')
+criterion = nn.MSELoss()
 
 for epoch in trange(0, max_epoch, total=max_epoch, initial=0):
     aggregate.train()
-    loss = 0.
     for it, (X, y) in enumerate(train_loader):
         aggregate.zero_grad()
-        inputs = Variable(X, requires_grad=True).to(device)
+        inputs = Variable((X - data.y_mean)/data.y_std, requires_grad=True).to(device)
         models_out, output = aggregate.forward(inputs)
         target = Variable(y.unsqueeze(1)).to(device)
-        loss += criterion(output, target)/len(train_loader)
+        loss = criterion(output, target)
         # l1_norm = 0.
         # for p in aggregate.parameters():
         #     l1_norm += 1.0e-5*torch.norm(p, p=1)
         # loss += l1_norm
-    loss.backward()
-    # nn.utils.clip_grad_value_(aggregate.parameters(), 1)
-    if args.wandb: 
-        wandb.log({"Aggregate Train Loss": loss.data.cpu().item()}, step=epoch)
-    if not args.quiet: tqdm.write(f'{models_out[0].detach().cpu().numpy()} =====> {output[0].data.cpu().item():.2f} || {y[0].data.cpu().item():.2f}')
-    optimizer.step()
-    optimizer.zero_grad()
+        loss.backward()
+        # nn.utils.clip_grad_value_(aggregate.parameters(), 1)
+        if args.wandb and it==0: 
+            wandb.log({"Aggregate Train Loss": loss.data.cpu().item()}, step=epoch)
+        if it==0 and not args.quiet: tqdm.write(f'{models_out[0].detach().cpu().numpy()} =====> {output[0].data.cpu().item():.2f} || {y[0].data.cpu().item():.2f}')
+        optimizer.step()
+        optimizer.zero_grad()
 
     
     aggregate.eval()
